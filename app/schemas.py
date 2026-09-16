@@ -45,6 +45,7 @@ class PostOut(BaseModel):
     id: int
     title: str
     content: str
+    image_url: str | None = None
     author_id: int
     created_at: datetime
     like_count: int = 0
@@ -52,6 +53,13 @@ class PostOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class PaginatedPostOut(BaseModel):
+    posts: list[PostOut]
+    total_count: int
+    total_pages: int
+    current_page: int
 
 
 # ---------- Comment ----------
