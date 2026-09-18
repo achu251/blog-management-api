@@ -26,10 +26,14 @@ def register(user_in: schemas.UserCreate, db: Session = Depends(get_db)):
             detail="Username or email already registered",
         )
 
+    # Fetch 'Basic' plan to assign as default
+    basic_plan = db.query(models.SubscriptionPlan).filter(models.SubscriptionPlan.name == "Basic").first()
+
     new_user = models.User(
         username=user_in.username,
         email=user_in.email,
         hashed_password=hash_password(user_in.password),
+        plan_id=basic_plan.id if basic_plan else None
     )
     db.add(new_user)
     db.commit()

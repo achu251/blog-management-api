@@ -5,6 +5,7 @@ from .. import models, schemas
 from ..database import get_db
 from ..dependencies import get_current_user
 from ..email_utils import notify_new_like
+from .posts import check_limit
 
 router = APIRouter(prefix="/posts", tags=["Likes"])
 
@@ -37,6 +38,11 @@ def toggle_like(
         liked = False
         message = "Post unliked"
     else:
+        plan = current_user.plan
+        if plan:
+            like_count = db.query(models.Like).filter(models.Like.user_id == current_user.id).count()
+            check_limit(plan.like_limit, like_count)
+            
         new_like = models.Like(post_id=post_id, user_id=current_user.id)
         db.add(new_like)
         db.commit()

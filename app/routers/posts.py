@@ -12,16 +12,25 @@ from ..dependencies import get_current_user
 
 router = APIRouter(prefix="/posts", tags=["Posts"])
 
+def check_limit(limit: int, current_count: int):
+    if limit != -1 and current_count >= limit:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="You’ve reached your plan limit. Kindly upgrade your plan to continue."
+        )
+
 
 def _to_post_out(post: models.Post, db: Session) -> schemas.PostOut:
     """Attach like_count and comment_count to a Post before returning it."""
     like_count = db.query(models.Like).filter(models.Like.post_id == post.id).count()
     comment_count = db.query(models.Comment).filter(models.Comment.post_id == post.id).count()
+    image_urls = [img.image_url for img in post.images] if hasattr(post, 'images') else []
     return schemas.PostOut(
         id=post.id,
         title=post.title,
         content=post.content,
         image_url=post.image_url,
+        image_urls=image_urls,
         author_id=post.author_id,
         created_at=post.created_at,
         like_count=like_count,
@@ -103,20 +112,47 @@ def create_post(
     title: str = Form(...),
     content: str = Form(...),
     image: Optional[UploadFile] = File(None),
+    images: list[UploadFile] = File(default=[]),
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
-    image_url = _save_image(image) if image else None
+    plan = current_user.plan
+    if plan:
+        post_count = db.query(models.Post).filter(models.Post.author_id == current_user.id).count()
+        check_limit(plan.post_limit, post_count)
+
+    all_images = [img for img in images if img.filename]
+    if image and image.filename:
+        all_images.insert(0, image)
+        
+    if plan and all_images:
+        check_limit(plan.image_limit, len(all_images) - 1)  # if checking exact amount, or just check len vs limit
+        # Better: check len(all_images) against limit
+        if plan.image_limit != -1 and len(all_images) > plan.image_limit:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="You’ve reached your plan limit. Kindly upgrade your plan to continue."
+            )
+
+    main_image_url = _save_image(all_images[0]) if all_images else None
 
     new_post = models.Post(
         title=title,
         content=content,
-        image_url=image_url,
+        image_url=main_image_url,
         author_id=current_user.id,
     )
     db.add(new_post)
     db.commit()
     db.refresh(new_post)
+
+    for img in all_images:
+        url = _save_image(img)
+        post_img = models.PostImage(post_id=new_post.id, image_url=url)
+        db.add(post_img)
+    db.commit()
+    db.refresh(new_post)
+
     return _to_post_out(new_post, db)
 
 
@@ -126,6 +162,7 @@ def update_post(
     title: Optional[str] = Form(None),
     content: Optional[str] = Form(None),
     image: Optional[UploadFile] = File(None),
+    images: list[UploadFile] = File(default=[]),
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
@@ -137,12 +174,30 @@ def update_post(
             detail="You can only update your own posts",
         )
 
+    all_images = [img for img in images if img.filename]
+    if image and image.filename:
+        all_images.insert(0, image)
+
+    plan = current_user.plan
+    if plan and all_images:
+        current_image_count = db.query(models.PostImage).filter(models.PostImage.post_id == post.id).count()
+        new_count = current_image_count + len(all_images)
+        if plan.image_limit != -1 and new_count > plan.image_limit:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="You’ve reached your plan limit. Kindly upgrade your plan to continue."
+            )
+
     if title is not None:
         post.title = title
     if content is not None:
         post.content = content
-    if image is not None:
-        post.image_url = _save_image(image)
+    if all_images:
+        post.image_url = _save_image(all_images[0])
+        for img in all_images:
+            url = _save_image(img)
+            post_img = models.PostImage(post_id=post.id, image_url=url)
+            db.add(post_img)
 
     db.commit()
     db.refresh(post)

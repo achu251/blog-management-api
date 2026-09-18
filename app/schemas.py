@@ -19,6 +19,7 @@ class UserOut(BaseModel):
     id: int
     username: str
     email: EmailStr
+    plan_id: int | None = None
 
     class Config:
         from_attributes = True  # allows creation from SQLAlchemy objects
@@ -27,6 +28,36 @@ class UserOut(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"
+
+
+# ---------- Subscriptions ----------
+
+class SubscriptionPlanOut(BaseModel):
+    id: int
+    name: str
+    price: float
+    post_limit: int
+    image_limit: int
+    like_limit: int
+    comment_limit: int
+
+    class Config:
+        from_attributes = True
+
+class SubscribeRequest(BaseModel):
+    plan_name: str
+
+class BillingHistoryOut(BaseModel):
+    id: int
+    plan_id: int
+    price: float
+    start_date: datetime
+    end_date: datetime
+    transaction_id: str
+    invoice_pdf_path: str
+
+    class Config:
+        from_attributes = True
 
 
 # ---------- Post ----------
@@ -46,6 +77,7 @@ class PostOut(BaseModel):
     title: str
     content: str
     image_url: str | None = None
+    image_urls: list[str] = []
     author_id: int
     created_at: datetime
     like_count: int = 0

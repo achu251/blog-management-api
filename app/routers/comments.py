@@ -5,6 +5,7 @@ from .. import models, schemas
 from ..database import get_db
 from ..dependencies import get_current_user
 from ..email_utils import notify_new_comment
+from .posts import check_limit
 
 router = APIRouter(prefix="/posts", tags=["Comments"])
 
@@ -38,6 +39,11 @@ def add_comment(
     post = db.query(models.Post).filter(models.Post.id == post_id).first()
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
+
+    plan = current_user.plan
+    if plan:
+        comment_count = db.query(models.Comment).filter(models.Comment.user_id == current_user.id).count()
+        check_limit(plan.comment_limit, comment_count)
 
     new_comment = models.Comment(
         post_id=post_id,
