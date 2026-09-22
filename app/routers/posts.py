@@ -102,6 +102,9 @@ def list_my_posts(
 @router.get("/{post_id}", response_model=schemas.PostOut)
 def get_post(post_id: int, db: Session = Depends(get_db)):
     post = _get_post_or_404(post_id, db)
+    post.views = (post.views or 0) + 1
+    db.commit()
+    db.refresh(post)
     return _to_post_out(post, db)
 
 

@@ -2,8 +2,7 @@ from fastapi import FastAPI
 
 from . import models
 from .database import engine, SessionLocal
-from .routers import auth, posts, comments, likes, subscriptions
-
+from .routers import auth, posts, comments, likes, subscriptions, users
 from fastapi.staticfiles import StaticFiles
 import os
 import sqlite3
@@ -11,6 +10,7 @@ import sqlite3
 # Create media directory if it doesn't exist
 os.makedirs("media/posts", exist_ok=True)
 os.makedirs("media/invoices", exist_ok=True)
+os.makedirs("static", exist_ok=True)
 
 # Auto-migrate: Add image_url column if it doesn't exist
 try:
@@ -25,6 +25,15 @@ except Exception:
 try:
     conn = sqlite3.connect("blog.db")
     conn.execute("ALTER TABLE users ADD COLUMN plan_id INTEGER REFERENCES subscription_plans(id);")
+    conn.commit()
+    conn.close()
+except Exception:
+    pass
+
+# Auto-migrate: Add views column if it doesn't exist
+try:
+    conn = sqlite3.connect("blog.db")
+    conn.execute("ALTER TABLE posts ADD COLUMN views INTEGER NOT NULL DEFAULT 0;")
     conn.commit()
     conn.close()
 except Exception:
@@ -55,12 +64,14 @@ app = FastAPI(
 )
 
 app.mount("/media", StaticFiles(directory="media"), name="media")
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 app.include_router(auth.router)
 app.include_router(posts.router)
 app.include_router(comments.router)
 app.include_router(likes.router)
 app.include_router(subscriptions.router)
+app.include_router(users.router)
 
 from .admin import setup_admin
 

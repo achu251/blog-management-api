@@ -54,6 +54,7 @@ class Post(Base):
     title = Column(String, nullable=False)
     content = Column(String, nullable=False)
     image_url = Column(String, nullable=True)
+    views = Column(Integer, default=0, nullable=False)
     author_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 

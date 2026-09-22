@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from .. import models, schemas
 from ..database import get_db
 from ..dependencies import get_current_user
-from ..email_utils import notify_new_comment
+from ..services.notification_service import notify_post_owner
 from .posts import check_limit
 
 router = APIRouter(prefix="/posts", tags=["Comments"])
@@ -58,10 +58,12 @@ def add_comment(
     # Runs in the background so the API response isn't delayed by "sending" the email.
     if post.author_id != current_user.id:
         background_tasks.add_task(
-            notify_new_comment,
-            post.author.email,
-            current_user.username,
-            post.title,
-        )
+    notify_post_owner,
+    post.author.email,
+    current_user.username,
+    post.title,
+    "Comment",
+    new_comment.created_at,
+)
 
     return new_comment

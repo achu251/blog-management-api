@@ -117,3 +117,19 @@ class LikeOut(BaseModel):
     liked: bool
     like_count: int
     message: str
+
+# ---------- Dashboard ----------
+
+class DashboardPostStats(BaseModel):
+    post_id: int
+    post_title: str
+    views: int
+    likes_count: int
+    comments_count: int
+
+class DashboardDataOut(BaseModel):
+    total_posts: int
+    total_comments_made: int
+    total_likes_received: int
+    total_post_views: int
+    post_stats: list[DashboardPostStats]

@@ -4,7 +4,8 @@ from sqlalchemy.orm import Session
 from .. import models, schemas
 from ..database import get_db
 from ..dependencies import get_current_user
-from ..email_utils import notify_new_like
+from datetime import datetime
+from ..services.notification_service import notify_post_owner
 from .posts import check_limit
 
 router = APIRouter(prefix="/posts", tags=["Likes"])
@@ -50,12 +51,14 @@ def toggle_like(
         message = "Post liked"
 
         if post.author_id != current_user.id:
-            background_tasks.add_task(
-                notify_new_like,
-                post.author.email,
-                current_user.username,
-                post.title,
-            )
+         background_tasks.add_task(
+        notify_post_owner,
+        post.author.email,
+        current_user.username,
+        post.title,
+        "Like",
+        datetime.now(),
+    )
 
     like_count = db.query(models.Like).filter(models.Like.post_id == post_id).count()
     return schemas.LikeOut(liked=liked, like_count=like_count, message=message)
