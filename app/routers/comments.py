@@ -5,6 +5,7 @@ from .. import models, schemas
 from ..database import get_db
 from ..dependencies import get_current_user
 from ..services.notification_service import notify_post_owner
+from ..services.in_app_notification_service import create_in_app_notification
 from .posts import check_limit
 
 router = APIRouter(prefix="/posts", tags=["Comments"])
@@ -45,15 +46,25 @@ def add_comment(
         comment_count = db.query(models.Comment).filter(models.Comment.user_id == current_user.id).count()
         check_limit(plan.comment_limit, comment_count)
 
-    new_comment = models.Comment(
+        new_comment = models.Comment(
         post_id=post_id,
         user_id=current_user.id,
         text=comment_in.text,
     )
+
     db.add(new_comment)
+
+    # Create in-app notification for the post owner.
+    if post.author_id != current_user.id:
+        create_in_app_notification(
+            db=db,
+            user_id=post.author_id,
+            message=f"{current_user.username} commented on your post: {post.title}",
+            notification_type="comment",
+        )
+
     db.commit()
     db.refresh(new_comment)
-
     # Notify the post owner by email (skip if commenting on your own post).
     # Runs in the background so the API response isn't delayed by "sending" the email.
     if post.author_id != current_user.id:

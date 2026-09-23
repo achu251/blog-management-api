@@ -2,7 +2,7 @@ from fastapi import FastAPI
 
 from . import models
 from .database import engine, SessionLocal
-from .routers import auth, posts, comments, likes, subscriptions, users
+from .routers import auth, posts, comments, likes, subscriptions, users,notifications
 from fastapi.staticfiles import StaticFiles
 import os
 import sqlite3
@@ -72,6 +72,7 @@ app.include_router(comments.router)
 app.include_router(likes.router)
 app.include_router(subscriptions.router)
 app.include_router(users.router)
+app.include_router(notifications.router)
 
 from .admin import setup_admin
 

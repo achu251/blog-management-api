@@ -45,6 +45,11 @@ class User(Base):
     posts = relationship("Post", back_populates="author", cascade="all, delete-orphan")
     comments = relationship("Comment", back_populates="user", cascade="all, delete-orphan")
     likes = relationship("Like", back_populates="user", cascade="all, delete-orphan")
+    notifications = relationship(
+        "Notification",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
 
 
 class Post(Base):
@@ -99,3 +104,40 @@ class Like(Base):
 
     post = relationship("Post", back_populates="likes")
     user = relationship("User", back_populates="likes")
+
+class Notification(Base):
+    __tablename__ = "notifications"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    user_id = Column(
+        Integer,
+        ForeignKey("users.id"),
+        nullable=False,
+        index=True,
+    )
+
+    message = Column(String, nullable=False)
+
+    notification_type = Column(
+        String,
+        nullable=False,
+        default="general",
+    )
+
+    is_read = Column(
+        Integer,
+        nullable=False,
+        default=0,
+    )
+
+    created_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+
+    user = relationship(
+        "User",
+        back_populates="notifications",
+    )

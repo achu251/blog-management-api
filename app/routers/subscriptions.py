@@ -6,6 +6,7 @@ import uuid
 from .. import models, schemas
 from ..database import get_db
 from ..dependencies import get_current_user
+from ..services.in_app_notification_service import create_in_app_notification
 from ..invoice_utils import generate_invoice_pdf
 
 router = APIRouter(prefix="/subscriptions", tags=["Subscriptions"])
@@ -25,6 +26,33 @@ def subscribe(
         raise HTTPException(status_code=404, detail="Plan not found")
         
     current_user.plan_id = plan.id
+        # Check whether this user already has billing history.
+    previous_subscription = (
+        db.query(models.BillingHistory)
+        .filter(
+            models.BillingHistory.user_id == current_user.id
+        )
+        .first()
+    )
+
+    notification_type = (
+        "subscription_renewed"
+        if previous_subscription
+        else "subscription_activated"
+    )
+
+    notification_message = (
+        f"Your {plan.name} subscription has been renewed successfully."
+        if previous_subscription
+        else f"Your {plan.name} subscription has been activated successfully."
+    )
+
+    create_in_app_notification(
+        db=db,
+        user_id=current_user.id,
+        message=notification_message,
+        notification_type=notification_type,
+    )
     
     # Generate Billing History
     transaction_id = str(uuid.uuid4())

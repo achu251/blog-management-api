@@ -6,6 +6,7 @@ from ..database import get_db
 from ..dependencies import get_current_user
 from datetime import datetime
 from ..services.notification_service import notify_post_owner
+from ..services.in_app_notification_service import create_in_app_notification
 from .posts import check_limit
 
 router = APIRouter(prefix="/posts", tags=["Likes"])
@@ -44,9 +45,24 @@ def toggle_like(
             like_count = db.query(models.Like).filter(models.Like.user_id == current_user.id).count()
             check_limit(plan.like_limit, like_count)
             
-        new_like = models.Like(post_id=post_id, user_id=current_user.id)
+            new_like = models.Like(
+            post_id=post_id,
+            user_id=current_user.id,
+        )
+
         db.add(new_like)
+
+        # Create in-app notification for the post owner.
+        if post.author_id != current_user.id:
+            create_in_app_notification(
+                db=db,
+                user_id=post.author_id,
+                message=f"{current_user.username} liked your post: {post.title}",
+                notification_type="like",
+            )
+
         db.commit()
+
         liked = True
         message = "Post liked"
 

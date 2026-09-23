@@ -133,3 +133,16 @@ class DashboardDataOut(BaseModel):
     total_likes_received: int
     total_post_views: int
     post_stats: list[DashboardPostStats]
+
+# ---------- Notifications ----------
+
+class NotificationOut(BaseModel):
+    id: int
+    user_id: int
+    message: str
+    notification_type: str
+    is_read: bool
+    created_at: datetime
+
+    class Config:
+        from_attributes = True

@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        
         :root {
             --bg-color: #0f172a;
             --card-bg: rgba(30, 41, 59, 0.7);
@@ -25,6 +26,169 @@
             box-sizing: border-box;
             font-family: 'Inter', sans-serif;
         }
+
+        .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.notification-wrapper {
+    position: relative;
+}
+
+.notification-bell {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.08);
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.notification-bell:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-1px);
+}
+
+.notification-badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: #ef4444;
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--bg-color);
+}
+
+.notification-badge.hidden {
+    display: none;
+}
+
+.notification-dropdown {
+    position: absolute;
+    top: 54px;
+    right: 0;
+    width: 360px;
+    max-width: calc(100vw - 30px);
+    background: #1e293b;
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+    overflow: hidden;
+    z-index: 1000;
+    display: none;
+}
+
+.notification-dropdown.show {
+    display: block;
+}
+
+.notification-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 16px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.notification-header strong {
+    font-size: 15px;
+}
+
+.mark-all-btn {
+    border: none;
+    background: transparent;
+    color: #60a5fa;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.mark-all-btn:hover {
+    text-decoration: underline;
+}
+
+.notification-list {
+    max-height: 420px;
+    overflow-y: auto;
+}
+
+.notification-item {
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.notification-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.notification-item.unread {
+    background: rgba(59, 130, 246, 0.10);
+}
+
+.notification-message {
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--text-primary);
+}
+
+.notification-item.unread .notification-message {
+    font-weight: 700;
+}
+
+.notification-time {
+    margin-top: 5px;
+    color: var(--text-secondary);
+    font-size: 11px;
+}
+
+.notification-type {
+    display: inline-block;
+    margin-bottom: 5px;
+    padding: 3px 7px;
+    border-radius: 999px;
+    background: rgba(96, 165, 250, 0.15);
+    color: #93c5fd;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.notification-empty {
+    padding: 30px 20px;
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+@media (max-width: 600px) {
+    .notification-dropdown {
+        right: -70px;
+    }
+
+    header {
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .header-actions {
+        flex-shrink: 0;
+    }
+}
 
         body {
             background-color: var(--bg-color);
@@ -199,10 +363,68 @@
     <div id="loading" class="loading">Loading Analytics Data...</div>
 
     <div id="dashboard-section" class="dashboard-content">
-        <header>
-            <h1>Your Analytics</h1>
-            <button onclick="logout()" style="background: rgba(255,255,255,0.1); border: 1px solid var(--border-color); color: white; padding: 8px 16px; border-radius: 8px; cursor: pointer;">Logout</button>
-        </header>
+        
+            <header>
+    <h1>Your Analytics</h1>
+
+    <div class="header-actions">
+
+        <div class="notification-wrapper">
+
+            <button
+                id="notification-bell"
+                class="notification-bell"
+                onclick="toggleNotifications()"
+                title="Notifications"
+            >
+                🔔
+                <span
+                    id="notification-badge"
+                    class="notification-badge"
+                >
+                    0
+                </span>
+            </button>
+
+            <div
+                id="notification-dropdown"
+                class="notification-dropdown"
+            >
+
+                <div class="notification-header">
+                    <strong>Notifications</strong>
+
+                    <button
+                        onclick="markAllNotificationsRead()"
+                        class="mark-all-btn"
+                    >
+                        Mark all read
+                    </button>
+                </div>
+
+                <div
+                    id="notification-list"
+                    class="notification-list"
+                >
+                    <div class="notification-empty">
+                        Loading notifications...
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <button
+            onclick="logout()"
+            style="background: rgba(255,255,255,0.1); border: 1px solid var(--border-color); color: white; padding: 8px 16px; border-radius: 8px; cursor: pointer;"
+        >
+            Logout
+        </button>
+
+    </div>
+</header>
+        
 
         <div class="stats-grid">
             <div class="stat-card">
@@ -236,6 +458,7 @@
     </div>
 </div>
 
+
 <script>
     let barChartInstance = null;
     let pieChartInstance = null;
@@ -246,6 +469,7 @@
         if(token) {
             document.getElementById("token-input").value = token;
             loadDashboard();
+             loadNotifications();
         }
     }
 
@@ -294,6 +518,198 @@
     }
 
     function updateUI(data) {
+        async function loadNotifications() {
+    const token = localStorage.getItem("blog_token");
+
+    if (!token) {
+        return;
+    }
+
+    try {
+        const response = await fetch("/notifications/", {
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error("Unable to load notifications");
+        }
+
+        const notifications = await response.json();
+
+        renderNotifications(notifications);
+
+        const unreadCount = notifications.filter(
+            notification => !notification.is_read
+        ).length;
+
+        updateNotificationBadge(unreadCount);
+
+    } catch (error) {
+        console.error("Notification error:", error);
+    }
+}
+
+
+function renderNotifications(notifications) {
+
+    const list = document.getElementById("notification-list");
+
+    if (!notifications.length) {
+        list.innerHTML = `
+            <div class="notification-empty">
+                No notifications yet.
+            </div>
+        `;
+
+        updateNotificationBadge(0);
+        return;
+    }
+
+    list.innerHTML = notifications.map(notification => {
+
+        const date = new Date(notification.created_at);
+
+        const formattedTime = date.toLocaleString();
+
+        const typeLabel =
+            notification.notification_type
+                .replaceAll("_", " ");
+
+        return `
+            <div
+                class="notification-item ${notification.is_read ? "" : "unread"}"
+                onclick="markNotificationRead(${notification.id})"
+            >
+
+                <div class="notification-type">
+                    ${escapeHtml(typeLabel)}
+                </div>
+
+                <div class="notification-message">
+                    ${escapeHtml(notification.message)}
+                </div>
+
+                <div class="notification-time">
+                    ${escapeHtml(formattedTime)}
+                </div>
+
+            </div>
+        `;
+
+    }).join("");
+}
+
+
+function updateNotificationBadge(count) {
+
+    const badge = document.getElementById("notification-badge");
+
+    if (!badge) {
+        return;
+    }
+
+    if (count > 0) {
+        badge.textContent = count > 99 ? "99+" : count;
+        badge.classList.remove("hidden");
+    } else {
+        badge.textContent = "0";
+        badge.classList.add("hidden");
+    }
+}
+
+
+function toggleNotifications() {
+
+    const dropdown = document.getElementById(
+        "notification-dropdown"
+    );
+
+    if (!dropdown) {
+        return;
+    }
+
+    dropdown.classList.toggle("show");
+
+    if (dropdown.classList.contains("show")) {
+        loadNotifications();
+    }
+}
+
+
+async function markNotificationRead(notificationId) {
+
+    const token = localStorage.getItem("blog_token");
+
+    if (!token) {
+        return;
+    }
+
+    try {
+
+        const response = await fetch(
+            `/notifications/${notificationId}/read`,
+            {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error("Unable to mark notification as read");
+        }
+
+        await loadNotifications();
+
+    } catch (error) {
+        console.error("Mark notification read error:", error);
+    }
+}
+
+
+async function markAllNotificationsRead() {
+
+    const token = localStorage.getItem("blog_token");
+
+    if (!token) {
+        return;
+    }
+
+    try {
+
+        const response = await fetch(
+            "/notifications/read",
+            {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error("Unable to mark notifications as read");
+        }
+
+        await loadNotifications();
+
+    } catch (error) {
+        console.error("Mark all notifications error:", error);
+    }
+}
+
+
+function escapeHtml(value) {
+
+    const div = document.createElement("div");
+
+    div.textContent = value;
+
+    return div.innerHTML;
+}
         // Update Stats
         document.getElementById("val-posts").innerText = data.total_posts;
         document.getElementById("val-comments").innerText = data.total_comments_made;
@@ -392,6 +808,24 @@
             }
         });
     }
+    document.addEventListener("click", function(event) {
+
+    const wrapper = document.querySelector(
+        ".notification-wrapper"
+    );
+
+    const dropdown = document.getElementById(
+        "notification-dropdown"
+    );
+
+    if (!wrapper || !dropdown) {
+        return;
+    }
+
+    if (!wrapper.contains(event.target)) {
+        dropdown.classList.remove("show");
+    }
+});
 </script>
 </body>
 </html>
