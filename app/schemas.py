@@ -146,3 +146,10 @@ class NotificationOut(BaseModel):
 
     class Config:
         from_attributes = True
+#-----------AI support request and response----------
+class AISupportRequest(BaseModel):
+    message: str
+
+
+class AISupportResponse(BaseModel):
+    response: str
