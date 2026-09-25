@@ -10,3 +10,4 @@ python-dotenv>=1.0.0
 reportlab>=4.2.0
 sqladmin>=0.16.1
 itsdangerous>=2.1.2
+Authlib>=1.8.0

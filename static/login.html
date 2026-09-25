@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog Management - Authentication</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+
+<div class="auth-container">
+
+    <div class="auth-card">
+
+        <div class="logo">✍️</div>
+
+        <!-- LOGIN -->
+        <div id="loginSection">
+
+            <h1>Welcome Back</h1>
+            <p class="subtitle">Login to your blog account</p>
+
+            <form id="loginForm">
+
+                <div class="input-group">
+                    <label>Username</label>
+                    <input type="text" id="username"
+                           placeholder="Enter your username" required>
+                </div>
+
+                <div class="input-group">
+                    <label>Password</label>
+                    <input type="password" id="password"
+                           placeholder="Enter your password" required>
+                </div>
+
+                <button type="submit" class="login-btn">
+                    Login
+                </button>
+
+            </form>
+
+            <div class="divider">
+                <span>OR</span>
+            </div>
+
+            <button class="social-btn google" onclick="loginWithGoogle()">
+                <span>G</span>
+                Continue with Google
+            </button>
+
+            <button class="social-btn facebook" onclick="loginWithFacebook()">
+                <span>f</span>
+                Continue with Facebook
+            </button>
+
+            <p id="message"></p>
+
+            <p class="signup-text">
+                Don't have an account?
+                <a href="#" onclick="showSignup()">Sign Up</a>
+            </p>
+
+        </div>
+
+
+        <!-- SIGNUP -->
+        <div id="signupSection" style="display:none;">
+
+            <h1>Create Account</h1>
+            <p class="subtitle">Create your blog account</p>
+
+            <form id="signupForm">
+
+                <div class="input-group">
+                    <label>Username</label>
+                    <input type="text" id="signupUsername"
+                           placeholder="Choose a username" required>
+                </div>
+
+                <div class="input-group">
+                    <label>Email</label>
+                    <input type="email" id="signupEmail"
+                           placeholder="Enter your email" required>
+                </div>
+
+                <div class="input-group">
+                    <label>Password</label>
+                    <input type="password" id="signupPassword"
+                           placeholder="Minimum 6 characters" required>
+                </div>
+
+                <button type="submit" class="login-btn">
+                    Create Account
+                </button>
+
+            </form>
+
+            <p id="signupMessage"></p>
+
+            <p class="signup-text">
+                Already have an account?
+                <a href="#" onclick="showLogin()">Login</a>
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script src="/static/script.js"></script>
+
+</body>
+</html>

@@ -1,11 +1,25 @@
 from fastapi import FastAPI
+from fastapi.responses import FileResponse
 
 from . import models
 from .database import engine, SessionLocal
 from .routers import auth, posts, comments, likes, subscriptions, users,notifications,ai_support
 from fastapi.staticfiles import StaticFiles
 import os
+from dotenv import load_dotenv
+from starlette.middleware.sessions import SessionMiddleware
 import sqlite3
+
+# Load environment variables
+load_dotenv()
+app = FastAPI(
+    title="Blog Management API",
+     description="A mini blogging system with JWT auth, posts, comments, and likes.",
+    version="1.0.0",)
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=os.getenv("SESSION_SECRET"),
+)
 
 # Create media directory if it doesn't exist
 os.makedirs("media/posts", exist_ok=True)
@@ -57,11 +71,7 @@ def create_default_plans():
 
 create_default_plans()
 
-app = FastAPI(
-    title="Blog Management API",
-    description="A mini blogging system with JWT auth, posts, comments, and likes.",
-    version="1.0.0",
-)
+
 
 app.mount("/media", StaticFiles(directory="media"), name="media")
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -80,6 +90,10 @@ from .admin import setup_admin
 @app.on_event("startup")
 def startup_event():
     setup_admin(app, engine)
+
+@app.get("/login", include_in_schema=False)
+def login_page():
+    return FileResponse("static/login.html")
 
 @app.get("/", tags=["Health"])
 def root():

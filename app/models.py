@@ -38,6 +38,9 @@ class User(Base):
     username = Column(String, unique=True, index=True, nullable=False)
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
+     # Auth0 social login information
+    auth0_id = Column(String, unique=True, index=True, nullable=True)
+    auth_provider = Column(String, nullable=True)
     plan_id = Column(Integer, ForeignKey("subscription_plans.id"), nullable=True)
 
     plan = relationship("SubscriptionPlan")
